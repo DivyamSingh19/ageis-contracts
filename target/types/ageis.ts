@@ -4,7 +4,7 @@
  * Note that this is only a type helper and is not the actual IDL. The original
  * IDL can be found at `target/idl/chaintrace.json`.
  */
-export type Chaintrace = {
+export type ageis = {
   "address": "4fRvr5yrDNTqnSXv8yFb9CSj3MwnYuade8UUmgb8cg3H",
   "metadata": {
     "name": "chaintrace",
