@@ -92,16 +92,22 @@ pub mod chaintrace {
             share: 100,
         }];
 
+        let meta_metadata_ai  = ctx.accounts.metadata.to_account_info();
+        let meta_mint_ai      = ctx.accounts.mint.to_account_info();
+        let meta_authority_ai = ctx.accounts.server_authority.to_account_info();
+        let meta_system_ai    = ctx.accounts.system_program.to_account_info();
+        let meta_rent_ai      = ctx.accounts.rent.to_account_info();
+
         let metadata_cpi = CreateMetadataAccountV3Cpi::new(
             &ctx.accounts.token_metadata_program,
             CreateMetadataAccountV3CpiAccounts {
-                metadata: &ctx.accounts.metadata.to_account_info(),
-                mint: &ctx.accounts.mint.to_account_info(),
-                mint_authority: &ctx.accounts.server_authority.to_account_info(),
-                payer: &ctx.accounts.server_authority.to_account_info(),
-                update_authority: (&ctx.accounts.server_authority.to_account_info(), true),
-                system_program: &ctx.accounts.system_program.to_account_info(),
-                rent: &ctx.accounts.rent.to_account_info(),
+                metadata: &meta_metadata_ai,
+                mint: &meta_mint_ai,
+                mint_authority: &meta_authority_ai,
+                payer: &meta_authority_ai,
+                update_authority: (&meta_authority_ai, true),
+                system_program: &meta_system_ai,
+                rent: Some(&meta_rent_ai),
             },
             CreateMetadataAccountV3InstructionArgs {
                 data: DataV2 {
@@ -113,28 +119,36 @@ pub mod chaintrace {
                     collection: None,
                     uses: None,
                 },
-                is_mutable: true, // server may need to update status in metadata
+                is_mutable: true,
                 collection_details: None,
             },
         );
         metadata_cpi.invoke()?;
 
         // ── Create MasterEdition (cap supply at 1/1) ───────────────────────
+        let ed_edition_ai       = ctx.accounts.master_edition.to_account_info();
+        let ed_mint_ai          = ctx.accounts.mint.to_account_info();
+        let ed_authority_ai     = ctx.accounts.server_authority.to_account_info();
+        let ed_metadata_ai      = ctx.accounts.metadata.to_account_info();
+        let ed_token_program_ai = ctx.accounts.token_program.to_account_info();
+        let ed_system_ai        = ctx.accounts.system_program.to_account_info();
+        let ed_rent_ai          = ctx.accounts.rent.to_account_info();
+
         let edition_cpi = CreateMasterEditionV3Cpi::new(
             &ctx.accounts.token_metadata_program,
             CreateMasterEditionV3CpiAccounts {
-                edition: &ctx.accounts.master_edition.to_account_info(),
-                mint: &ctx.accounts.mint.to_account_info(),
-                update_authority: &ctx.accounts.server_authority.to_account_info(),
-                mint_authority: &ctx.accounts.server_authority.to_account_info(),
-                payer: &ctx.accounts.server_authority.to_account_info(),
-                metadata: &ctx.accounts.metadata.to_account_info(),
-                token_program: &ctx.accounts.token_program.to_account_info(),
-                system_program: &ctx.accounts.system_program.to_account_info(),
-                rent: &ctx.accounts.rent.to_account_info(),
+                edition: &ed_edition_ai,
+                mint: &ed_mint_ai,
+                update_authority: &ed_authority_ai,
+                mint_authority: &ed_authority_ai,
+                payer: &ed_authority_ai,
+                metadata: &ed_metadata_ai,
+                token_program: &ed_token_program_ai,
+                system_program: &ed_system_ai,
+                rent: Some(&ed_rent_ai),
             },
             CreateMasterEditionV3InstructionArgs {
-                max_supply: Some(0), // 0 prints allowed → true 1/1 NFT
+                max_supply: Some(0),
             },
         );
         edition_cpi.invoke()?;

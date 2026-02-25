@@ -1,2 +1,6 @@
 .env
-.excalidrawr
+.excalidraw
+debug
+deploy
+release
+sbpf-solana-solana

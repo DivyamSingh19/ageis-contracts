@@ -14,7 +14,7 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 anchor-debug = []
 custom-heap = []
 custom-panic = []
@@ -22,6 +22,8 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "0.31.1"
+anchor-spl = "0.31.1"
+mpl-token-metadata = "5"
 constant_time_eq = { workspace = true }
 
 [lints.rust]
