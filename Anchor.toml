@@ -12,7 +12,7 @@ ageis = "4fRvr5yrDNTqnSXv8yFb9CSj3MwnYuade8UUmgb8cg3H"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
