@@ -33,20 +33,6 @@ pub const STATUS_DELIVERED: u8 = 3;
 pub mod chaintrace {
     use super::*;
 
-    /// Mint a product NFT and create the ProductTrace PDA.
-    ///
-    /// Called by the server when a user places an order (or when a farmer
-    /// confirms a product listing).  The server must have already uploaded
-    /// metadata to IPFS and resolved the CID before calling this.
-    ///
-    /// Edge cases handled:
-    ///  - Empty / oversized string fields rejected.
-    ///  - Idempotency: if a ProductTrace PDA already exists for the same
-    ///    order_id the ix will fail at account init time (Anchor prevents
-    ///    double-init on a PDA with `init`).  No extra check needed.
-    ///  - NFT supply is hard-capped at 1 via MasterEdition (max_supply = 0
-    ///    means "unlimited prints"; we pass Some(0) which means 0 prints
-    ///    allowed → effectively a 1/1).
     pub fn mint_product_nft(
         ctx: Context<MintProductNft>,
         args: MintProductArgs,
@@ -279,14 +265,11 @@ pub mod chaintrace {
         let delivery = &mut ctx.accounts.delivery_trace;
         let current = delivery.status;
 
-        // ── Enforce strict sequential transitions ──────────────────────────
-        // Only allow current+1 transitions.  No skipping, no rollback.
         require!(
             args.new_status == current + 1,
             ChainTraceError::InvalidStatusTransition
         );
 
-        // ── Update status and record milestone timestamp ───────────────────
         let now = Clock::get()?.unix_timestamp;
         delivery.status = args.new_status;
 
@@ -300,8 +283,7 @@ pub mod chaintrace {
             STATUS_DELIVERED => {
                 delivery.delivered_at = now;
             }
-            // STATUS_INITIALIZED is never a valid *new* status (would require
-            // current = u8::MAX which can't happen), but we handle it anyway.
+       
             _ => return Err(ChainTraceError::InvalidStatusTransition.into()),
         }
 
@@ -314,8 +296,6 @@ pub mod chaintrace {
         Ok(())
     }
 }
-
-// ─── Instruction Contexts ─────────────────────────────────────────────────────
 
 #[derive(Accounts)]
 #[instruction(args: MintProductArgs)]
@@ -334,7 +314,6 @@ pub struct MintProductNft<'info> {
     )]
     pub mint: Account<'info, Mint>,
 
-    /// ATA for the server to hold the minted token.
     #[account(
         init,
         payer = server_authority,
@@ -343,7 +322,6 @@ pub struct MintProductNft<'info> {
     )]
     pub token_account: Account<'info, TokenAccount>,
 
-    /// ProductTrace PDA — seeds: ["product", order_id].
     #[account(
         init,
         payer = server_authority,
@@ -377,14 +355,14 @@ pub struct InitializeDelivery<'info> {
     #[account(mut)]
     pub server_authority: Signer<'info>,
 
-    /// Must already exist — validated by PDA seed match.
+     
     #[account(
         seeds = [b"product", args.order_id.as_bytes()],
         bump = product_trace.bump,
     )]
     pub product_trace: Account<'info, ProductTrace>,
 
-    /// DeliveryTrace PDA — seeds: ["delivery", order_id].
+   
     #[account(
         init,
         payer = server_authority,
@@ -441,7 +419,7 @@ pub struct InitDeliveryArgs {
     pub farmer_id: String,
     pub delivery_partner_id: String,
     pub consumer_id: String,
-}
+}   
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct UpdateStatusArgs {
